@@ -1,0 +1,60 @@
+# Программаны жинау: Android .apk және iPhone .ipa (қолтаңбасыз, Sideloadly арқылы орнатуға).
+# Дайын файлдар: GitHub → Actions → соңғы жинау → Artifacts.
+name: build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: 'Сервер мекенжайы (бос болса — стандарт)'
+        required: false
+
+env:
+  FLUTTER_VERSION: '3.47.8'
+  API_URL: ${{ github.event.inputs.api_url || vars.API_URL || 'https://dist.pf.kz' }}
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter build apk --release --dart-define=API_URL=$API_URL
+      - run: cp build/app/outputs/flutter-apk/app-release.apk razdacha.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: razdacha-android
+          path: razdacha.apk
+
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign --dart-define=API_URL=$API_URL
+      - name: .ipa жасау
+        run: |
+          mkdir -p Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -qr razdacha.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: razdacha-ios
+          path: razdacha.ipa
