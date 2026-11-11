@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _err;
 
   Future<void> _login() async {
-    final ph = _phone.text.replaceAll(RegExp(r'\D'), '');
+    final ph = phone10(_phone.text);
     if (ph.length < 10 || _pass.text.isEmpty) {
       setState(() => _err = errText('wrong'));
       return;
@@ -94,6 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextField(
                     controller: _phone,
                     keyboardType: TextInputType.phone,
+                    inputFormatters: [PhoneMask()],
                     decoration: const InputDecoration(prefixIcon: Icon(Icons.phone_iphone), hintText: '8 (700) 000-00-00'),
                   ),
                   const SizedBox(height: 12),
