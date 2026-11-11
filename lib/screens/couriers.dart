@@ -37,7 +37,7 @@ class _CouriersScreenState extends State<CouriersScreen> {
 
   Future<void> _edit([Map<String, dynamic>? c]) async {
     final n = TextEditingController(text: c == null ? '' : '${c['name']}');
-    final p = TextEditingController(text: c == null ? '' : '${c['phone']}');
+    final p = TextEditingController(text: c == null ? '' : phoneFmt('${c['phone']}'));
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -48,6 +48,7 @@ class _CouriersScreenState extends State<CouriersScreen> {
           TextField(
             controller: p,
             keyboardType: TextInputType.phone,
+            inputFormatters: [PhoneMask()],
             decoration: InputDecoration(labelText: tw('Нөмір', 'Номер'), hintText: '8 (700) 000-00-00'),
           ),
           if (c == null) ...[
@@ -65,9 +66,9 @@ class _CouriersScreenState extends State<CouriersScreen> {
     if (ok != true) return;
     try {
       if (c == null) {
-        await Api.i.post('courier_add', {'name': n.text.trim(), 'phone': p.text});
+        await Api.i.post('courier_add', {'name': n.text.trim(), 'phone': phone10(p.text)});
       } else {
-        await Api.i.post('courier_edit', {'id': c['id'], 'name': n.text.trim(), 'phone': p.text});
+        await Api.i.post('courier_edit', {'id': c['id'], 'name': n.text.trim(), 'phone': phone10(p.text)});
       }
       await _load();
     } catch (e) {
